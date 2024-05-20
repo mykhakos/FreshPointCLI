@@ -1,7 +1,7 @@
 [project]
-name = "freshpointcli"
-version = "0.1.0"
-description = "Freshpoint.cz web page CLI interface."
+name = "FreshPointCLI"
+version = "0.1.1"
+description = "Freshpoint.cz webpage CLI interface."
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
@@ -30,6 +30,7 @@ classifiers = [
 keywords = ["freshpoint", "freshpoint.cz"]
 requires-python = ">=3.8"
 dependencies = [
+    "platformdirs", 
     "prompt_toolkit",
     "pygments",
     "rich",
