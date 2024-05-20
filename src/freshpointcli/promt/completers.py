@@ -3,11 +3,11 @@ import typing
 
 from prompt_toolkit.completion import Completer, Completion, CompleteEvent
 from prompt_toolkit.document import Document
+from unidecode import unidecode
 
 from freshpointsync import Product
 
 from .parsers import QueryParser
-from unidecode import unidecode
 
 
 class QueryCompleter(Completer):

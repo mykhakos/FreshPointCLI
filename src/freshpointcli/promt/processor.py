@@ -34,7 +34,7 @@ class PromptProcessor:
         self.prompt_text = FormattedText([
                 ('class:app_name', app_name),
                 ('class:at', '@'),
-                ('class:location', page.data.location_name),
+                ('class:location', page.data.location),
                 ('class:prompt_arrow', '> '),
             ])
         self.session: PromptSession = PromptSession(

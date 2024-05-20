@@ -8,7 +8,7 @@ from rich.padding import Padding
 from freshpointsync import ProductPage, ProductPageData
 
 from .files import AppDirs, AppFiles, AppSettings
-from .logger import logger, configure_logging
+from .logger import logging, logger, configure_logging
 from .promt import PromptProcessor, AppColors, parse_args_init
 
 
@@ -42,12 +42,12 @@ class AppSession:
         self.page = page
         self.files = files
         self.update_interval = update_interval
-        self._init_update_task: typing.Optional[asyncio.Task] = None
         self.promp_processor: typing.Optional[PromptProcessor] = None
+        self._init_update_task: typing.Optional[asyncio.Task] = None
 
     async def _init_update_forever_after_delay(self, delay: float) -> None:
         await asyncio.sleep(delay)
-        self.page.update_forever(self.update_interval)
+        self.page.init_update_forever_task(self.update_interval)
 
     async def _await_init_update_task(self) -> None:
         if self._init_update_task is None or self._init_update_task.done():
@@ -145,7 +145,8 @@ def handle_unexpected_error(e: Exception, log_path: str) -> None:
 async def app() -> None:
     try:
         args = parse_args_init()
-        dirs = AppDirs(appname='FreshPointCLI', ensure_exists=True)
+        name = 'FreshPointCLI'
+        dirs = AppDirs(appname=name, ensure_exists=True)  # type: ignore
         files = AppFiles(dirs)
     except OSError as e:  # may happen if user has no permissions
         console.print(
@@ -154,7 +155,10 @@ async def app() -> None:
             )
         raise SystemExit
     try:
-        configure_logging(log_file=files.get_log_file())
+        configure_logging(
+            log_file=files.get_log_file(),
+            level=logging.WARNING
+            )
     except Exception as e:
         console.print(
             f'WARNING: Failed to configure logging ({e}).',

@@ -166,6 +166,8 @@ class QueryParser(argparse.ArgumentParser):
         namespace: typing.Optional[argparse.Namespace] = None,
     ) -> argparse.Namespace:
         parsed_args = super().parse_args(args=args, namespace=namespace)
+        if parsed_args is None:
+            raise SystemExit
         parsed_args.name = parsed_args.name or parsed_args.positional_name
         delattr(parsed_args, 'positional_name')
         return parsed_args
