@@ -1,12 +1,12 @@
 import datetime
-
 from abc import ABC, abstractmethod
-from rich.table import Table, box
-from rich.text import Text
-from rich.style import Style
-from rich.padding import Padding
+from typing import List
 
 from freshpointsync import Product
+from rich.padding import Padding
+from rich.style import Style
+from rich.table import Table, box
+from rich.text import Text
 
 from .styles import AppColors
 
@@ -21,20 +21,19 @@ class QueryResultTableABC(ABC):
 
 
 class QueryResultTable(QueryResultTableABC):
-
-    def _construct(self) -> Table:
-        now = datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S")
+    def _construct(self) -> Table:  # noqa: PLR6301
+        now = datetime.datetime.now().strftime('%Y/%m/%d, %H:%M:%S')
         table = Table(
             title=f'Query results {now}',
             title_justify='center',
             show_header=True,
-            header_style="bold default",
+            header_style='bold default',
             expand=True,
-            )
-        table.add_column("Name", ratio=4)
-        table.add_column("Category", ratio=2)
-        table.add_column("Price", ratio=1)
-        table.add_column("Quantity", ratio=1)
+        )
+        table.add_column('Name', ratio=4)
+        table.add_column('Category', ratio=2)
+        table.add_column('Price', ratio=1)
+        table.add_column('Quantity', ratio=1)
         table.box = box.ASCII2
         return table
 
@@ -86,15 +85,15 @@ class QueryResultTable(QueryResultTableABC):
             Padding(self.format_price(product), padding),
             Padding(self.format_quantity(product), padding),
             end_section=end_section,
-            )
+        )
 
-    def add_rows(self, products: list[Product]) -> None:
+    def add_rows(self, products: List[Product]) -> None:
         if not products:
             return
         end_section = False
         for i, product in enumerate(products[:-1]):
             product_next = products[i + 1]
-            end_section = (product.category != product_next.category)
+            end_section = product.category != product_next.category
             self.add_row(product, end_section)
         self.add_row(product=products[-1], end_section=True)
 
@@ -105,17 +104,17 @@ class QueryResultTableFailed(QueryResultTableABC):
         super().__init__()
 
     def _construct(self) -> Table:
-        now = datetime.datetime.now().strftime("%Y/%m/%d, %H:%M:%S")
+        now = datetime.datetime.now().strftime('%Y/%m/%d, %H:%M:%S')
         table = Table(
             title=f'Query results {now}',
             show_header=False,
             expand=True,
-            )
+        )
         text = Text(
             self.reason,
             style=Style(color=AppColors.RED.value),
-            justify="center"
-            )
+            justify='center',
+        )
         table.add_row(text)
         table.box = box.ASCII2
         return table

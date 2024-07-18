@@ -1,16 +1,14 @@
 import argparse
 import asyncio
-import typing
+from typing import Optional
 
+from freshpointsync import ProductPage, ProductPageData
 from rich.console import Console
 from rich.padding import Padding
 
-from freshpointsync import ProductPage, ProductPageData
-
 from .files import AppDirs, AppFiles, AppSettings
-from .logger import logging, logger, configure_logging
-from .promt import PromptProcessor, AppColors, parse_args_init
-
+from .logger import configure_logging, logger, logging
+from .promt import AppColors, PromptProcessor, parse_args_init
 
 APP_NAME = 'FreshPoint'
 
@@ -23,7 +21,7 @@ def dump_page_data(page_data: ProductPageData, page_cache_file: str) -> None:
         file.write(page_data.model_dump_json(indent=4, by_alias=True))
 
 
-async def dump_page_data_on_update(context) -> None:
+async def dump_page_data_on_update(context) -> None:  # noqa: ANN001, RUF029
     page_data: ProductPageData = context.get('page_data')
     file_path: str = context.get('file_path')
     if not page_data or not file_path:
@@ -34,16 +32,13 @@ async def dump_page_data_on_update(context) -> None:
 
 class AppSession:
     def __init__(
-        self,
-        page: ProductPage,
-        files: AppFiles,
-        update_interval: float = 10.0
+        self, page: ProductPage, files: AppFiles, update_interval: float = 10.0
     ) -> None:
         self.page = page
         self.files = files
         self.update_interval = update_interval
-        self.promp_processor: typing.Optional[PromptProcessor] = None
-        self._init_update_task: typing.Optional[asyncio.Task] = None
+        self.promp_processor: Optional[PromptProcessor] = None
+        self._init_update_task: Optional[asyncio.Task] = None
 
     async def _init_update_forever_after_delay(self, delay: float) -> None:
         await asyncio.sleep(delay)
@@ -55,12 +50,12 @@ class AppSession:
         with console.status(
             'Updating product data...',
             spinner='bouncingBar',
-            spinner_style=f'bold {AppColors.FRESHPOINT.value}'
+            spinner_style=f'bold {AppColors.FRESHPOINT.value}',
         ):
             await self._init_update_task
             page_cache_file = self.files.get_page_cache_file(
                 self.page.data.location_id
-                )
+            )
             dump_page_data(self.page.data, page_cache_file)
 
     async def start_session(self) -> None:
@@ -68,25 +63,25 @@ class AppSession:
         self.page.context['page_data'] = self.page.data
         self.page.context['file_path'] = self.files.get_page_cache_file(
             self.page.data.location_id
-            )
+        )
         self._init_update_task = asyncio.create_task(
-            self.page.update_silently()
-            )
-        asyncio.create_task(
+            self.page.update(silent=True)
+        )
+        asyncio.create_task(  # noqa: RUF006
             self._init_update_forever_after_delay(self.update_interval)
-            )
+        )
         self.page.subscribe_for_update(handler=dump_page_data_on_update)
         if not self.page.data.products:  # first run, no cache
             await self._await_init_update_task()
         if not self.page.data.products:  # invalid page ID
             console.print(
                 f'Page {self.page.data.url} is not accessible.',
-                style=AppColors.RED.value
-                )
+                style=AppColors.RED.value,
+            )
             raise SystemExit
         self.promp_processor = PromptProcessor(
             APP_NAME, self.page, self.files.get_history_file()
-            )
+        )
 
     async def await_responce(self) -> str:
         assert self.promp_processor is not None
@@ -128,7 +123,7 @@ def ensure_location_id_set(
             console.print(
                 'Page location ID cache not found. '
                 'Please provide a location ID.'
-                )
+            )
             logger.info('Page location ID cache not found.')
             raise SystemExit
         args.location_id = settings.page_id
@@ -139,7 +134,7 @@ def ensure_location_id_set(
 def handle_unexpected_error(e: Exception, log_path: str) -> None:
     logger.exception(f'Unexpected error "{type(e).__name__}": {e}')
     console.print(f'Unexpected error. Exiting. See "{log_path}" for details.')
-    raise SystemExit
+    raise SystemExit from e
 
 
 async def app() -> None:
@@ -151,19 +146,16 @@ async def app() -> None:
     except OSError as e:  # may happen if user has no permissions
         console.print(
             f'Error initializing app files directory ({e}). Exiting.',
-            style=AppColors.RED.value
-            )
-        raise SystemExit
+            style=AppColors.RED.value,
+        )
+        raise SystemExit from e
     try:
-        configure_logging(
-            log_file=files.get_log_file(),
-            level=logging.WARNING
-            )
+        configure_logging(log_file=files.get_log_file(), level=logging.INFO)
     except Exception as e:
         console.print(
             f'WARNING: Failed to configure logging ({e}).',
-            style=AppColors.RED.value
-            )
+            style=AppColors.RED.value,
+        )
     try:
         settings = files.get_settings()
         ensure_location_id_set(args, settings)
@@ -184,7 +176,7 @@ async def app() -> None:
         with console.status(
             'Closing session...',
             spinner='bouncingBar',
-            spinner_style=f'bold {AppColors.FRESHPOINT.value}'
+            spinner_style=f'bold {AppColors.FRESHPOINT.value}',
         ):
             await session.stop_session()
 

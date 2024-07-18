@@ -1,17 +1,22 @@
-import os
 import hashlib
-
+import os
+import sys
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Optional
-from platformdirs import PlatformDirs
-from pydantic import (
-    BaseModel, ConfigDict, ValidationError, ValidationInfo,
-    ValidatorFunctionWrapHandler, field_validator, Field
-)
-from pydantic.alias_generators import to_camel
+from typing import Any, Dict, Optional, Set, Union
 
 from freshpointsync import ProductPageData
+from platformdirs import PlatformDirs
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    ValidationInfo,
+    ValidatorFunctionWrapHandler,
+    field_validator,
+)
+from pydantic.alias_generators import to_camel
 
 from .logger import logger
 
@@ -21,12 +26,12 @@ class AppFileData(BaseModel):
         alias_generator=to_camel,
         populate_by_name=True,
         validate_assignment=True,
-        )
+    )
 
     file_path: Optional[str] = Field(default=None, exclude=True)
     _last_dump_hash: str = ''
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context) -> None:  # noqa: ANN001
         self._last_dump_hash = self.get_hash()
 
     @classmethod
@@ -34,15 +39,15 @@ class AppFileData(BaseModel):
         cls,
         path: str,
         *,
-        strict: bool | None = None,
-        context: dict[str, Any] | None = None
+        strict: Optional[bool] = None,
+        context: Optional[Dict[str, Any]] = None,
     ) -> 'AppFileData':
-        with open(path, 'r', encoding='utf-8') as file:
+        with open(path, encoding='utf-8') as file:
             json_data = file.read()
         model = cls.model_validate_json(
             json_data, strict=strict, context=context
-            )
-        model.file_path = path                    # file_path is assigned after
+        )
+        model.file_path = path  # file_path is assigned after
         model._last_dump_hash = model.get_hash()  # model_post_init is called
         return model
 
@@ -50,31 +55,31 @@ class AppFileData(BaseModel):
     @classmethod
     def _set_field_safe(
         cls,
-        value: Any,
+        value: object,
         handler: ValidatorFunctionWrapHandler,
-        info: ValidationInfo
-    ) -> dict[str, Any]:
+        info: ValidationInfo,
+    ) -> Dict[str, object]:
         try:
             return handler(value)
         except ValidationError:
             logger.warning(
                 f'Invalid value "{value}" for settings field '
                 f'"{info.field_name}". Setting to default (None).'
-                )
+            )
             return handler(None)
 
     def model_dump_file(
         self,
         *,
-        indent: int | None = None,
-        include: set | dict | None = None,
-        exclude: set | dict | None = None,
+        indent: Optional[int] = None,
+        include: Optional[Union[Set, Dict]] = None,
+        exclude: Optional[Union[Set, Dict]] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
         round_trip: bool = False,
-        warnings: bool = True
+        warnings: bool = True,
     ) -> None:
         if self.file_path is None:
             raise FileNotFoundError('No file path set')
@@ -90,17 +95,19 @@ class AppFileData(BaseModel):
                 exclude_defaults=exclude_defaults,
                 exclude_none=exclude_none,
                 round_trip=round_trip,
-                warnings=warnings
-                )
+                warnings=warnings,
+            )
             with open(self.file_path, 'w', encoding='utf-8') as file:
                 file.write(data)
 
-    def set_field_and_dump_file(self, field_name: str, value: Any) -> None:
+    def set_field_and_dump_file(self, field_name: str, value: object) -> None:
         setattr(self, field_name, value)
         self.model_dump_file()
 
     def get_hash(self) -> str:
         data = self.model_dump_json().encode()
+        if sys.version_info < (3, 9):
+            return hashlib.sha256(data).hexdigest()
         return hashlib.sha256(data, usedforsecurity=False).hexdigest()
 
 
@@ -110,7 +117,6 @@ class AppSettings(AppFileData):
 
 
 class AppDirs(PlatformDirs):  # type: ignore
-
     @property
     def user_pages_cache_dir(self) -> str:
         path = os.path.join(self.user_cache_dir, 'pages')
@@ -147,19 +153,19 @@ class AppFiles:
             logger.info(
                 'Settings file was not found. '
                 'Initializing a default settings instance.'
-                )
+            )
             return AppSettings(file_path=path)
         except (ValidationError, JSONDecodeError) as err:
             logger.warning(
                 f'Settings file is invalid ({err}). '
                 f'Initializing a default settings instance.'
-                )
+            )
             return AppSettings(file_path=path)
 
     def get_page_cache(self, page_id: int) -> ProductPageData:
         try:
             path = self.get_page_cache_file(page_id)
-            with open(path, 'r', encoding='utf-8') as file:
+            with open(path, encoding='utf-8') as file:
                 data = file.read()
             page_data = ProductPageData.model_validate_json(data)
             if page_data.location_id != page_id:
@@ -169,11 +175,11 @@ class AppFiles:
             logger.info(
                 f'Page cache file for page {page_id} was not found. '
                 f'Initializing an empty page data instance.'
-                )
+            )
             return ProductPageData(location_id=page_id)
         except (ValidationError, JSONDecodeError) as err:
             logger.warning(
                 f'Page cache file for page {page_id} is invalid ({err}). '
                 f'Initializing an empty page data instance.'
-                )
+            )
             return ProductPageData(location_id=page_id)

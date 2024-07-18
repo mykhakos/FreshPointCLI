@@ -1,7 +1,5 @@
 import logging
-
 from logging.handlers import RotatingFileHandler
-
 
 logger = logging.getLogger('freshpointcli')
 
@@ -11,10 +9,9 @@ def configure_logging(
     level: int = logging.DEBUG,
     fmt: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     max_bytes: int = 10**7,
-    backup_count: int = 5
+    backup_count: int = 5,
 ) -> None:
-    """
-    Configure the logging module to only log to a specified file.
+    """Configure the logging module to only log to a specified file.
 
     Args:
         log_path (str): Path to the log file.
@@ -25,8 +22,8 @@ def configure_logging(
         Defaults to 5.
     """
     f_handler = RotatingFileHandler(
-        log_file, maxBytes=max_bytes, backupCount=backup_count
-        )
+        log_file, mode='a', maxBytes=max_bytes, backupCount=backup_count
+    )
     f_formatter = logging.Formatter(fmt)
     f_handler.setFormatter(f_formatter)
     logging.basicConfig(level=level, handlers=[f_handler])

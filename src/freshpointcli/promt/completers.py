@@ -1,26 +1,23 @@
 import shlex
-import typing
-
-from prompt_toolkit.completion import Completer, Completion, CompleteEvent
-from prompt_toolkit.document import Document
-from unidecode import unidecode
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from freshpointsync import Product
+from prompt_toolkit.completion import CompleteEvent, Completer, Completion
+from prompt_toolkit.document import Document
+from unidecode import unidecode
 
 from .parsers import QueryParser
 
 
 class QueryCompleter(Completer):
-
-    def __init__(self, products: typing.Iterable[Product]) -> None:
+    def __init__(self, products: Iterable[Product]) -> None:
         self.product_names = self._get_product_names(products)
         self.product_categories = self._get_product_categories(products)
         self.parser_argnames = self._get_parser_argnames()
         self.positional_name_encountered: bool = False
 
-    def _get_product_names(
-        self, products: typing.Iterable[Product]
-    ) -> dict[str, str]:
+    @staticmethod
+    def _get_product_names(products: Iterable[Product]) -> Dict[str, str]:
         names = {}
         for product in products:
             if product.name:
@@ -29,9 +26,8 @@ class QueryCompleter(Completer):
                     names[name_lowercase_ascii] = product.name
         return names
 
-    def _get_product_categories(
-        self, products: typing.Iterable[Product]
-    ) -> dict[str, str]:
+    @staticmethod
+    def _get_product_categories(products: Iterable[Product]) -> Dict[str, str]:
         categories = {}
         for product in products:
             if product.category:
@@ -40,22 +36,23 @@ class QueryCompleter(Completer):
                     categories[category_lowercase_ascii] = product.category
         return categories
 
-    def _get_parser_argnames(self) -> dict[str, str]:
+    @staticmethod
+    def _get_parser_argnames() -> Dict[str, str]:
         return {short: full for short, full in QueryParser().optional_args}
 
-    def yield_argname(self, text: str):
+    def yield_argname(self, text: str):  # noqa: ANN201
         for short, full in self.parser_argnames.items():
             if text in short or text in full:
                 start_position = -len(text)
                 if text == full:
-                    start_position = start_position - 1
+                    start_position -= 1
                 yield Completion(
                     full,
                     start_position=start_position,
                     display=full,
-                    )
+                )
 
-    def yield_name(self, text: str):
+    def yield_name(self, text: str):  # noqa: ANN201
         for name_lowercase_ascii in self.product_names:
             if text.strip('\'"') in name_lowercase_ascii:
                 name = self.product_names[name_lowercase_ascii]
@@ -63,29 +60,33 @@ class QueryCompleter(Completer):
                     f'"{name}"',
                     start_position=-len(text),
                     display=name,
-                    )
+                )
 
-    def yield_category(self, text: str):
+    def yield_category(self, text: str):  # noqa: ANN201
         for category_lowercase_ascii in self.product_categories:
             if text.strip('\'"') in category_lowercase_ascii:
                 category = self.product_categories[category_lowercase_ascii]
                 yield Completion(
-                    f'"{category}"',
-                    start_position=-len(text),
-                    display=category
-                    )
+                    f'"{category}"', start_position=-len(text), display=category
+                )
 
-    def yield_completions(self, text: str, text_prev: typing.Optional[str]):
+    def yield_completions(self, text: str, text_prev: Optional[str]):  # noqa: ANN201
         if text_prev:  # suggest completions based on previous argument
             if text_prev.startswith('-'):
-                if text_prev in ['-n', '--name']:
+                if text_prev in {'-n', '--name'}:
                     yield from self.yield_name(text)
-                elif text_prev in ['-c', '--category']:
+                elif text_prev in {'-c', '--category'}:
                     yield from self.yield_category(text)
-                elif text_prev in [  # a number is expected after these
-                    '-pmin', '--price-min', '-pmax', '--price-max',
-                    '-qmin', '--quantity-min', '-qmax', '--quantity-max'
-                ]:
+                elif text_prev in {  # a number is expected after these
+                    '-pmin',
+                    '--price-min',
+                    '-pmax',
+                    '--price-max',
+                    '-qmin',
+                    '--quantity-min',
+                    '-qmax',
+                    '--quantity-max',
+                }:
                     return
         if text.startswith('-'):  # suggest -a and --arg completions
             yield from self.yield_argname(text)
@@ -94,10 +95,12 @@ class QueryCompleter(Completer):
                 return
             yield from self.yield_name(text)
 
-    def format_text(self, text: str) -> str:
+    @staticmethod
+    def format_text(text: str) -> str:
         return unidecode(text).casefold()
 
-    def split_text(self, text: str) -> list[str]:
+    @staticmethod
+    def split_text(text: str) -> List[str]:
         try:
             args = shlex.split(text, posix=False)
             if len(args) > 1:
@@ -112,8 +115,8 @@ class QueryCompleter(Completer):
                     args[-1] = args[-1][:-1]
             except ValueError:
                 try:
-                    args = shlex.split(f'{text}\'', posix=False)
-                    if args and args[-1] and args[-1][-1] == '\'':
+                    args = shlex.split(f"{text}'", posix=False)
+                    if args and args[-1] and args[-1][-1] == "'":
                         args[-1] = args[-1][:-1]
                 except ValueError:  # should not happen
                     return []
@@ -121,7 +124,7 @@ class QueryCompleter(Completer):
             args.append('')
         return args
 
-    def get_last_two_args(self, text: str) -> tuple[str, str]:
+    def get_last_two_args(self, text: str) -> Tuple[str, str]:
         text_formatted = unidecode(text).casefold()
         args = self.split_text(text_formatted)
         try:
@@ -135,7 +138,7 @@ class QueryCompleter(Completer):
                 arg_last, arg_prev = '', ''
         return arg_last, arg_prev
 
-    def get_completions(self, document: Document, event: CompleteEvent):
+    def get_completions(self, document: Document, event: CompleteEvent):  # noqa: ANN201
         text = document.text_before_cursor
         arg_last, arg_prev = self.get_last_two_args(text)
         yield from self.yield_completions(arg_last, arg_prev)

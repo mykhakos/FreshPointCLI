@@ -1,26 +1,25 @@
 import argparse
 import shlex
-import typing
-
 from functools import lru_cache
-from unidecode import unidecode
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TypeVar
 
 from freshpointsync import Product
+from unidecode import unidecode
 
 
 @lru_cache(maxsize=4096)
-def format_str(s: typing.Any) -> str:
+def format_str(s: object) -> str:
     return unidecode(str(s)).strip().casefold()
 
 
-T = typing.TypeVar('T', int, float)
+T = TypeVar('T', int, float)
 
 
 class ArgTypes:
     @staticmethod
-    def nonnegative_number(value: typing.Any, type_cls: typing.Type[T]) -> T:
+    def nonnegative_number(value: object, type_cls: Type[T]) -> T:
         try:
-            value_converted = type_cls(value)
+            value_converted = type_cls(value)  # type: ignore[arg-type]
         except Exception as e:
             raise ValueError(f'Value "{value}" is not a valid number') from e
         if value_converted < 0:
@@ -28,11 +27,11 @@ class ArgTypes:
         return value_converted
 
     @classmethod
-    def nonnegative_float(cls, value: typing.Any) -> float:
+    def nonnegative_float(cls, value: object) -> float:
         return cls.nonnegative_number(value, float)
 
     @classmethod
-    def nonnegative_int(cls, value: typing.Any) -> int:
+    def nonnegative_int(cls, value: object) -> int:
         if not str(value).isdigit():
             raise ValueError(f'Value "{value}" is not an integer')
         return cls.nonnegative_number(value, int)
@@ -44,18 +43,20 @@ def parse_args_init() -> argparse.Namespace:
         'location_id',
         nargs='?',
         type=ArgTypes.nonnegative_int,
-        help="Product location (page ID)"
-        )
+        help='Product location (page ID)',
+    )
     return parser.parse_args()
 
 
 class QueryParserHelpFormatter(argparse.HelpFormatter):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, max_help_position=52)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        if 'max_help_position' not in kwargs:
+            kwargs['max_help_position'] = 52
+        super().__init__(*args, **kwargs)
 
 
 class QueryParser(argparse.ArgumentParser):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         if 'formatter_class' not in kwargs:
             kwargs['formatter_class'] = QueryParserHelpFormatter
         super().__init__(*args, **kwargs)
@@ -66,75 +67,68 @@ class QueryParser(argparse.ArgumentParser):
         group_name.add_argument(
             'positional_name',
             nargs='?',
-            help="Product name. Use this for a quick search by name, or omit it and use --name when specifying additional parameters."  # noqa
-            )
+            help='Product name. Use this for a quick search by name, or omit it and use --name when specifying additional parameters.',
+        )
         group_name.add_argument(
             '-n',
             '--name',
-            help="Product name, use when specifying additional parameters. Mutually exclusive with the direct product name positional argument."  # noqa
-            )
-        self.add_argument(
-            '-c',
-            '--category',
-            help="Product category"
-            )
+            help='Product name, use when specifying additional parameters. Mutually exclusive with the direct product name positional argument.',
+        )
+        self.add_argument('-c', '--category', help='Product category')
         self.add_argument(
             '-qmin',
             '--quantity-min',
             type=ArgTypes.nonnegative_int,
-            help="Minimum number of available products (in pieces)"
-            )
+            help='Minimum number of available products (in pieces)',
+        )
         self.add_argument(
             '-qmax',
             '--quantity-max',
             type=ArgTypes.nonnegative_int,
-            help="Maximum number of available products (in pieces)"
-            )
+            help='Maximum number of available products (in pieces)',
+        )
         self.add_argument(
             '-pmin',
             '--price-min',
             type=ArgTypes.nonnegative_float,
-            help="Lowest product price"
-            )
+            help='Lowest product price',
+        )
         self.add_argument(
             '-pmax',
             '--price-max',
             type=ArgTypes.nonnegative_float,
-            help="Highest product price"
-            )
+            help='Highest product price',
+        )
         self.add_argument(
             '-a',
             '--available',
             action='store_true',
-            help="Product is currently in stock"
-            )
+            help='Product is currently in stock',
+        )
         self.add_argument(
-            '-s',
-            '--sale',
-            action='store_true',
-            help="Product is on sale"
-            )
+            '-s', '--sale', action='store_true', help='Product is on sale'
+        )
         self.add_argument(
             '-g',
             '--glutenfree',
             action='store_true',
-            help="Product is gluten free"
-            )
+            help='Product is gluten free',
+        )
         self.add_argument(
             '-v',
             '--vegetarian',
             action='store_true',
-            help="Product is vegetarian"
-            )
+            help='Product is vegetarian',
+        )
         self.add_argument(
             '-sd',
             '--setdefault',
             action='store_true',
-            help="Set the default query"
-            )
+            help='Set the default query',
+        )
 
     @property
-    def optional_args(self) -> list[tuple[str, str]]:
+    def optional_args(self) -> List[Tuple[str, str]]:
         optional_args = []
         for action in self._actions:
             if len(action.option_strings) == 2:
@@ -148,7 +142,7 @@ class QueryParser(argparse.ArgumentParser):
         return optional_args
 
     @staticmethod
-    def split_args(args: str) -> list[str]:
+    def split_args(args: str) -> List[str]:
         try:
             return shlex.split(args)
         except ValueError:
@@ -156,14 +150,14 @@ class QueryParser(argparse.ArgumentParser):
                 return shlex.split(f'{args}"')
             except ValueError:
                 try:
-                    return shlex.split(f'{args}\'')
+                    return shlex.split(f"{args}'")
                 except Exception:  # should not happen
                     return []
 
     def parse_args(  # type: ignore[override]
         self,
-        args: typing.Optional[typing.Sequence[str]] = None,
-        namespace: typing.Optional[argparse.Namespace] = None,
+        args: Optional[Sequence[str]] = None,
+        namespace: Optional[argparse.Namespace] = None,
     ) -> argparse.Namespace:
         parsed_args = super().parse_args(args=args, namespace=namespace)
         if parsed_args is None:
@@ -174,9 +168,9 @@ class QueryParser(argparse.ArgumentParser):
 
     def parse_args_safe(
         self,
-        args: typing.Optional[typing.Sequence[str]] = None,
-        namespace: typing.Optional[argparse.Namespace] = None,
-    ) -> typing.Optional[argparse.Namespace]:
+        args: Optional[Sequence[str]] = None,
+        namespace: Optional[argparse.Namespace] = None,
+    ) -> Optional[argparse.Namespace]:
         try:
             return self.parse_args(args, namespace)
         except SystemExit:
@@ -184,17 +178,17 @@ class QueryParser(argparse.ArgumentParser):
 
 
 def get_constraints(
-    args: argparse.Namespace
-) -> list[typing.Callable[[Product], bool]]:
-    constraints: list[typing.Callable[[Product], bool]] = []
+    args: argparse.Namespace,
+) -> List[Callable[[Product], bool]]:
+    constraints: list[Callable[[Product], bool]] = []
     if args.name is not None:
         constraints.append(
             lambda p: format_str(args.name) in p.name_lowercase_ascii
-            )
+        )
     if args.category is not None:
         constraints.append(
             lambda p: format_str(args.category) in p.category_lowercase_ascii
-            )
+        )
     if args.quantity_min is not None:
         constraints.append(lambda p: p.quantity >= args.quantity_min)
     if args.quantity_max is not None:

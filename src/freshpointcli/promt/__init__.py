@@ -1,22 +1,25 @@
 from .completers import QueryCompleter
-from .lexers import QueryLexer, PygmentsLexer
-from .parsers import QueryParser, parse_args_init, get_constraints
+from .lexers import PygmentsLexer, QueryLexer
+from .parsers import QueryParser, get_constraints, parse_args_init
 from .processor import PromptProcessor
-from .styles import FreshpointStyle, AppColors
-from .tables import QueryResultTableABC, QueryResultTableFailed, QueryResultTable  # noqa
-
+from .styles import AppColors, FreshpointStyle
+from .tables import (
+    QueryResultTable,
+    QueryResultTableABC,
+    QueryResultTableFailed,
+)
 
 __all__ = [
-    "get_constraints",
-    "parse_args_init",
-    "AppColors",
-    "PygmentsLexer",
-    "QueryCompleter",
-    "QueryLexer",
-    "QueryParser",
-    "PromptProcessor",
-    "FreshpointStyle",
-    "QueryResultTableABC",
-    "QueryResultTableFailed",
-    "QueryResultTable",
+    'AppColors',
+    'FreshpointStyle',
+    'PromptProcessor',
+    'PygmentsLexer',
+    'QueryCompleter',
+    'QueryLexer',
+    'QueryParser',
+    'QueryResultTable',
+    'QueryResultTableABC',
+    'QueryResultTableFailed',
+    'get_constraints',
+    'parse_args_init',
 ]
