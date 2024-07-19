@@ -1,38 +1,71 @@
-
 # FreshPointCLI
-A CLI REPL interface to query FreshPoint product price and availability.
+Welcome to FreshPointCLI, your go-to REPL tool for querying *my.freshpoint.cz*
+product webpages from your terminal.
+
+FreshPointCLI is based on the [FreshPointSync](https://freshpointsync.readthedocs.io)
+project.
+
+## Key Features
+
+🔎 **Continuous Querying**. Effortlessly check product availability, prices,
+and more without restarting the application.
+
+🆎 **Query Autocompletion**. Enjoy intelligent completion suggestions and
+highlighting for query arguments and product data, like names and categories.
+
+📜 **Search History**. Easily access your previous searches and receive
+history-based autocompletion suggestions.
+
+💎 **Rich Formatting**. Receive vibrant and visually appealing query responses
+with a retro aesthetic, powered by Rich.
 
 ## Installation
 
-`FreshPointCLI` supports Python 3.8 and higher. The library can be installed
-using the following CLI command:
+### Prerequisites
+
+FreshPointCLI requires Python 3.8 or higher. If you don't have Python installed,
+you can download it from the [official website](<https://www.python.org/downloads/>).
+
+### FreshPointCLI Installation
+
+Official library releases can be found on
+[📦 PyPI](<https://pypi.org/project/freshpointcli/>). To install
+the latest stable version of FreshPointCLI, use the following CLI command:
 
 ```console
-$ pip install freshpointcli
+$ pip install freshpointcli --upgrade
+```
+
+To install the latest development version directly from the project's
+[📁 GitHub repository](https://github.com/mykhakos/FreshPointCLI>), use
+the following CLI command:
+
+```console
+$ pip install git+https://github.com/mykhakos/FreshPointCLI
 ```
 
 ## Usage
 
-`FreshPointCLI` is a Read-Eval-Print Loop (REPL) application intended to be used
-only from the command line interface (CLI).
+FreshPointCLI focuses on providing an intuitive and responsive command line
+interface, following standard CLI conventions.
 
 ### Starting Up the Application
 
-You can initialize the application
-using the following CLI command:
+Initialize the application using the following CLI command:
 
 ```console
 $ freshpoint <location_id>
 ```
-*<location_id>* is the ID of the FreshPoint location to track. It can be found
-in the page URL. For example, for https://my.freshpoint.cz/device/product-list/296,
-location id is *296*.
 
-Location ID is preserved between the application sessions, so if you intend
-to track the same location as the last time, you can omit the location id
-argument and invoke the application without it.
+`<location_id>` is the ID of the FreshPoint location to track. It can be deduced
+from the page URL. For example, for `https://my.freshpoint.cz/device/product-list/296`,
+the location ID is *296*.
 
-Invoke the application with `--help` to receice start-up information:
+The location ID is preserved between the application sessions, so if you intend
+to track the same location as the last time, you can omit the location ID argument
+and invoke the application without it.
+
+Invoke the application with `--help` to receive a usage tutorial:
 
 ```console
 $ freshpoint --help
@@ -40,45 +73,78 @@ $ freshpoint --help
 
 ### Querying the Product Page
 
-Once the application is running, it displays an input promt, and you can type in
-queries to check for products' availability, price, and more. 
-
-To query if a product is avalable, use the following command:
+Once the application is running, it displays an input prompt, and you can type
+in queries to check for products' availability, price, and more.
 
 ```console
-FreshPoint@LocationName> <product_name> --available
+FreshPoint@LocationName> ... <-- submit your query here
 ```
 
-Replace `<product_name>` with the name of the product you want to query. Note
-that name and category matching is case-insensitive, supports partial match,
-and ignores diacritics.
+> **Note**: `LocationName` is a placeholder for an actual location name.
 
-To query for all the products that are currently on sale, use the following
-command:
+#### Querying for a Single Product
+
+To query for a single product, type in the product name and press `↵ Enter`.
+For example, a query for tiramisu would be:
 
 ```console
-FreshPoint@LocationName> --sale
+FreshPoint@LocationName> tiramisu 
 ```
 
-Query arguments can be combined in any way:
+The product name does not need to be an exact match or include diacritics.
+FreshPointCLI uses lowercase ASCII partial matching, meaning the formatted query
+string must be a part of the complete formatted product name to qualify as a match.
+This method applies to any string matching within the application. If there are
+several matches, the application will display a list of all corresponding results.
+
+For example, query `kolac` would return all the products that have it in its name,
+such as "**Koláč** s náplněmi 100 g" or "Pošírovaná krůtí rolka v bylinkách,
+polentový **koláč**ek s variací sýrů, zeleninová caponata".
+
+#### Querying with Product Attributes
+
+To query for products with specific attributes, specify the attribute flags,
+such as `--category`, `--available`, or `--price-max <price>`, and press
+`↵ Enter`. For example, to query for all available listings in category
+"Dezerty, snídaně" under 80 CZK, use the following command:
 
 ```console
-FreshPoint@LocationName> --available --price-max 100 --vegerarian
+FreshPoint@LocationName> --category dezerty --available --price-max 80
 ```
 
-To display all the supported arguments, use `--help`:
+You can get a list of all supported attributes by invoking the `--help` command
+in a query.
 
 ```console
 FreshPoint@LocationName> --help
 ```
 
+#### Using Autocomplete and Query History
+
+Autocomplete suggestions will be displayed as you type. You can use `Tab ↹` or
+the `↑` and `↓` arrow keys to navigate through the suggestions.
+
+Before you start typing, you can use `↑` and `↓` arrow keys to navigate through
+the history of commands you have executed previously.
+
+#### Setting a Default Query
+
+If you submit an empty query, all the products on the page are returned by default.
+You can change this behavior by using the `--setdefault` flag in a query. Once you
+submit a query with `--setdefault`, that query will be used as the default whenever
+you submit an empty query.
+
 ## Contributing
 
-Contributions are welcome! If you find a bug or have a feature request, please
-open an issue on GitHub. If you would like to contribute code, please fork
-the repository and submit a pull request.
+FreshPointCLI is an open-source project in its early development stages. If you
+encounter any issues or have suggestions for improvements, please report them on
+the [GitHub Issue tracker](https://github.com/mykhakos/FreshPointCLI/issues).
+
+Contributions to FreshPointCLI are also welcome! If you would like
+to contribute, please fork the repository, implement your changes, and open
+a Pull Request with a detailed description of your work on the
+[GitHub Pull Request page](https://github.com/mykhakos/FreshPointCLI/pulls).
 
 ## License
 
-`FreshPointCLI` is licensed under the MIT License.
-See the `LICENSE` file for more information.
+FreshPointCLI is distributed under the MIT License.
