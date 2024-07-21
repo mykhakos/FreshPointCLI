@@ -180,7 +180,7 @@ class QueryParser(argparse.ArgumentParser):
             '-h',
             '--help',
             action='help',
-            help='Show this help message and exit.',
+            help='Show this help message.',
         )
 
     @property
