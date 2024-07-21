@@ -96,24 +96,6 @@ class QueryParser(argparse.ArgumentParser):
             help='Product category. Filters search results by category.',
         )
         self.add_argument(
-            '-q',
-            '--quantity-min',
-            type=ArgTypes.nonnegative_int,
-            help=(
-                'Minimum product quantity (pcs). '
-                'Sets the minimum number of available product pieces.'
-            ),
-        )
-        self.add_argument(
-            '-Q',
-            '--quantity-max',
-            type=ArgTypes.nonnegative_int,
-            help=(
-                'Maximum product quantity (pcs). '
-                'Sets the maximum number of available product pieces.'
-            ),
-        )
-        self.add_argument(
             '-p',
             '--price-min',
             type=ArgTypes.nonnegative_float,
@@ -132,12 +114,21 @@ class QueryParser(argparse.ArgumentParser):
             ),
         )
         self.add_argument(
-            '-a',
-            '--available',
-            action='store_true',
+            '-q',
+            '--quantity-min',
+            type=ArgTypes.nonnegative_int,
             help=(
-                'Availability flag. Filters search results to include '
-                'only products that are currently in stock.'
+                'Minimum product quantity (pcs). '
+                'Sets the minimum number of available product pieces.'
+            ),
+        )
+        self.add_argument(
+            '-Q',
+            '--quantity-max',
+            type=ArgTypes.nonnegative_int,
+            help=(
+                'Maximum product quantity (pcs). '
+                'Sets the maximum number of available product pieces.'
             ),
         )
         self.add_argument(
@@ -147,6 +138,15 @@ class QueryParser(argparse.ArgumentParser):
             help=(
                 'Sale flag. Filters search results to include '
                 'only products that are currently on sale.'
+            ),
+        )
+        self.add_argument(
+            '-a',
+            '--available',
+            action='store_true',
+            help=(
+                'Availability flag. Filters search results to include '
+                'only products that are currently in stock.'
             ),
         )
         self.add_argument(
