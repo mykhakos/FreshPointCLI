@@ -1,3 +1,5 @@
+[//]: # (Copy of the project README.md file)
+
 # FreshPointCLI
 Welcome to FreshPointCLI, your go-to REPL tool for querying *my.freshpoint.cz*
 product webpages from your terminal.
