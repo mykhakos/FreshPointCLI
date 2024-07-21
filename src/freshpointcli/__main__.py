@@ -180,6 +180,7 @@ async def app() -> None:
                 spinner_style=f'bold {AppColors.FRESHPOINT.value}',
             ):
                 await session.stop_session()
+            await asyncio.sleep(0.1)
         except Exception as e:  # if event loop is already closed
             handle_unexpected_error(e, files.get_log_file())
 
