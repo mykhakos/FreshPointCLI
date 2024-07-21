@@ -67,6 +67,7 @@ class QueryParser(argparse.ArgumentParser):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         if 'formatter_class' not in kwargs:
             kwargs['formatter_class'] = QueryParserHelpFormatter
+        kwargs['add_help'] = False
         super().__init__(*args, **kwargs)
         self._add_arguments_init()
 
@@ -95,7 +96,7 @@ class QueryParser(argparse.ArgumentParser):
             help='Product category. Filters search results by category.',
         )
         self.add_argument(
-            '-qmin',
+            '-q',
             '--quantity-min',
             type=ArgTypes.nonnegative_int,
             help=(
@@ -104,7 +105,7 @@ class QueryParser(argparse.ArgumentParser):
             ),
         )
         self.add_argument(
-            '-qmax',
+            '-Q',
             '--quantity-max',
             type=ArgTypes.nonnegative_int,
             help=(
@@ -113,7 +114,7 @@ class QueryParser(argparse.ArgumentParser):
             ),
         )
         self.add_argument(
-            '-pmin',
+            '-p',
             '--price-min',
             type=ArgTypes.nonnegative_float,
             help=(
@@ -122,7 +123,7 @@ class QueryParser(argparse.ArgumentParser):
             ),
         )
         self.add_argument(
-            '-pmax',
+            '-P',
             '--price-max',
             type=ArgTypes.nonnegative_float,
             help=(
@@ -167,13 +168,19 @@ class QueryParser(argparse.ArgumentParser):
             ),
         )
         self.add_argument(
-            '-sd',
+            '-D',
             '--setdefault',
             action='store_true',
             help=(
                 'Set-Default flag. Sets the current query as the default, '
                 'i.e., the query that is used when an empty query is submitted.'
             ),
+        )
+        self.add_argument(
+            '-h',
+            '--help',
+            action='help',
+            help='Show this help message and exit.',
         )
 
     @property

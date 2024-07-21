@@ -1,6 +1,6 @@
 [project]
 name = "FreshPointCLI"
-version = "0.1.2"
+version = "0.2.0"
 description = "FreshPoint webpage CLI interface."
 readme = "README.md"
 license = { file = "LICENSE" }

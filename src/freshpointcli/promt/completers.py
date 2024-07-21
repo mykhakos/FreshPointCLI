@@ -78,13 +78,13 @@ class QueryCompleter(Completer):
                 elif text_prev in {'-c', '--category'}:
                     yield from self.yield_category(text)
                 elif text_prev in {  # a number is expected after these
-                    '-pmin',
+                    '-p',
                     '--price-min',
-                    '-pmax',
+                    '-P',
                     '--price-max',
-                    '-qmin',
+                    '-q',
                     '--quantity-min',
-                    '-qmax',
+                    '-Q',
                     '--quantity-max',
                 }:
                     return

@@ -1,5 +1,6 @@
 [//]: # (Copy of the project README.md file)
 
+
 # FreshPointCLI
 Welcome to FreshPointCLI, your go-to REPL tool for querying *my.freshpoint.cz*
 product webpages from your terminal.
@@ -103,23 +104,23 @@ For example, query "`kolac`" would return products such as
 "**Koláč** s náplněmi 100 g" or "Pošírovaná krůtí rolka v bylinkách,
 polentový **koláč**ek s variací sýrů, zeleninová caponata".
 
-#### Querying with Product Attributes
+#### Querying with Product Attribute Options
 
-To query for products with specific attributes, use flags starting with a hyphen,
-such as `--category`, `--available`, or `--price-max <price>`, and press
-`↵ Enter`. For example, to query for all available listings in category
-"Dezerty, snídaně" under 80 CZK, use the following command:
+To query for products with specific attributes, use flags and options starting
+with a hyphen, such as `--category`, `--available`, or `--price-max <price>`,
+and press `↵ Enter`. For example, to query for all available listings in
+the category "Dezerty, snídaně" under 80 CZK, use the following command:
 
 ```console
 FreshPoint@LocationName> --category dezerty --available --price-max 80
 ```
 
-Each argument flag has a short form, starting with a single hyphen ('`-`'), and
-a long form, starting with a double hyphen ('`--`'). They are equivalent. Some
-argument flags require a value. For example, the `--price-max <price>` flag
-requires a non-negative number.
+Each option has a short form, starting with a single hyphen ('`-`'), and a long
+form, starting with a double hyphen ('`--`'). They are equivalent. Some options
+require a value. For example, the `--price-max <price>` option requires
+a non-negative number.
 
-You can get a list of all supported attributes and their usage instructions by
+You can get a list of all supported options and their usage instructions by
 invoking the `--help` command in a query.
 
 ```console
