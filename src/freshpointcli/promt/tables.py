@@ -46,7 +46,7 @@ class QueryResultTable(QueryResultTableABC):
         if product.is_sold_out:
             style = Style(color='default', dim=True)
         elif product.is_last_piece:
-            style = Style(color='default', blink=True)
+            style = Style(color='default', blink=False)
         else:
             style = Style(color='default')
         return Text(product.name, style=style)
