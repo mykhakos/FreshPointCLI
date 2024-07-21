@@ -134,7 +134,7 @@ def ensure_location_id_set(
 def handle_unexpected_error(e: Exception, log_path: str) -> None:
     logger.exception(f'Unexpected error "{type(e).__name__}": {e}')
     console.print(f'Unexpected error. Exiting. See "{log_path}" for details.')
-    raise SystemExit from e
+    raise SystemExit
 
 
 async def app() -> None:
@@ -148,7 +148,7 @@ async def app() -> None:
             f'Error initializing app files directory ({e}). Exiting.',
             style=AppColors.RED.value,
         )
-        raise SystemExit from e
+        raise SystemExit  # noqa: B904
     try:
         configure_logging(log_file=files.get_log_file(), level=logging.INFO)
     except Exception as e:
@@ -173,12 +173,15 @@ async def app() -> None:
     except Exception as e:
         handle_unexpected_error(e, files.get_log_file())
     finally:  # still executed if SystemExit is raised
-        with console.status(
-            'Closing session...',
-            spinner='bouncingBar',
-            spinner_style=f'bold {AppColors.FRESHPOINT.value}',
-        ):
-            await session.stop_session()
+        try:
+            with console.status(
+                'Closing session...',
+                spinner='bouncingBar',
+                spinner_style=f'bold {AppColors.FRESHPOINT.value}',
+            ):
+                await session.stop_session()
+        except Exception as e:  # if event loop is already closed
+            handle_unexpected_error(e, files.get_log_file())
 
 
 def main() -> None:
